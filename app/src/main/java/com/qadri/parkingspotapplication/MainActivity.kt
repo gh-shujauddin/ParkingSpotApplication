@@ -1,5 +1,6 @@
 package com.qadri.parkingspotapplication
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,12 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.qadri.parkingspotapplication.presentation.MapScreen
 import com.qadri.parkingspotapplication.ui.theme.ParkingSpotApplicationTheme
+import com.qadri.parkingspotapplication.util.PermissionBox
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -22,25 +29,28 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    val locationPermissions = listOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                    )
+
+                    val locationPermissionsState = rememberMultiplePermissionsState(
+                        locationPermissions
+                    )
+
+                    if (locationPermissionsState.allPermissionsGranted) {
+                        Text("Thanks! I can access your exact location :D")
+                        MapScreen()
+                    } else {
+                        PermissionBox(
+                            permissions = locationPermissions,
+                            onGranted = {
+                                MapScreen()
+                            }
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ParkingSpotApplicationTheme {
-        Greeting("Android")
     }
 }
